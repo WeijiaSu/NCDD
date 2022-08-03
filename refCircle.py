@@ -185,4 +185,4 @@ def GetTEreads(canfile):
 
 getChimeric_reads(InputFile)
 GetTEreads(inputFile)
-GetTEreads(inFile)
+#GetTEreads(inFile)
