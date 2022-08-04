@@ -19,7 +19,7 @@ pd.set_option("display.max_column",40)
 
 parser=argparse.ArgumentParser()
 parser.add_argument("-bam","--inFile")
-parser.add_argument("-js","--JunSize",default=700)
+parser.add_argument("-js","--JunSize",default=100)
 parser.add_argument("-Prefix","--Prefix",default=None)
 
 args=parser.parse_args()
@@ -27,16 +27,14 @@ args=parser.parse_args()
 
 pd.set_option("display.max_columns",40)
 
-parser=argparse.ArgumentParser()
-parser.add_argument("-bam","--bamFile")
-
-args=parser.parse_args()
-
 bamFile=args.bamFile
-
+pre=args.Prefix
 
 from bamConverter import bamConverter
 bamConverter().ConverAlignment(bamFile)
+
+records=list(SeqIO.parse(ref,"fasta"))
+d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
 
 def map_ratio(sub_f):
   r_len=int(list(sub_f["ReadLen"])[0])
@@ -59,38 +57,25 @@ def getChimeric_reads(infile):
   f["p"]=f["m"]/f["ReadLen"]
   re=f.loc[f["p"]<0.9]
   f=f.loc[f["p"]>=0.9]
-  f.to_csv(infile+"_rc90.tsv",index=None,sep="\t")
+  f.to_csv(pre+"_rc90.tsv",index=None,sep="\t")
   s2=f.drop_duplicates(["Readname"],keep="first").shape[0]
   print("Total aligned reads %s; Fully aligned reads %s (%s)"%(s1,s2,round(s2/s1*100,2)))
 
 
-records=list(SeqIO.parse(ref,"fasta"))
-d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
 
-def GetTEreads(File):
+def FilterReads(File):
     f=pd.read_table(File,header=0,sep="\t")
     f["Refname"]=f["Refname"].apply(str)
     f["Reflen"]=f["Refname"].apply(lambda x: d[x])
-    LinearAlignment=f.loc[(f["RefStart"]<=100) & (f["RefEnd"]>=f["ReadLen"]-100)]
-    full_reads=LinearAlignment
+    LinearAlignment=f.loc[(f["ReadStart"]<=100) & (f["ReadEnd"]>=f["ReadLen"]-100)]
     LinearAlignment.to_csv(pre+"_LiAg.tsv",index=None,sep="\t")
-    Linear_ref_reads=full_reads.loc[(full_reads["RefStart"]<=100) & (full_reads["RefEnd"]>=full_reads["Reflen"]-100)]
-    Linear_ref_reads.to_csv(pre+"_LiTEreads.tsv",index=None,sep="\t")
-    short=full_reads.loc[~full_reads["Readname"].isin(list(Linear_ref_reads["Readname"]))]
-    short.to_csv(pre+"_shortReads.tsv",index=None,sep="\t")
-    #print("Total:", len(set(f["Readname"])))
-    #print("TEreads:", len(set(Linear_ref_reads["Readname"])))
-    #print("short reads:", len(set(short["Readname"])))
     candidateReads=f.loc[f["Readname"].apply(lambda x: x not in list(LinearAlignment["Readname"]))]
-    #print("reads_left:", len(set(candidateReads["Readname"])))
     candidateReads.to_csv(pre+".candi.tsv",index=None,sep="\t")
 
 
 def Junction(list1,list2):
     n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
     if n3>n2 and n3-n2>100:
-        return False
-    elif n3<n2 and n3-n2<-defJ:
         return False
     elif abs(n3-n1)<100 or abs(n2-n4)<100:
         return False
@@ -112,9 +97,9 @@ def isCircle(list1,list2):
     if d1!=d2 or j==False:
         return False
     else:
-        if d1=="+" and t_max==t2 and t_min==t3:
+        if d1=="+" and t_max==t2:
             return True
-        if d1=="-" and t_max==t4 and t_min==t1:
+        if d1=="-" and t_max==t4:
             return True
         else:
             return False
@@ -132,47 +117,37 @@ def CircleType(list1,list2):
     if isCircle(list1,list2) ==False:
         return "NC"
     else:
-        if t_max>=reflength-100 and t_min<=100 and n2-n3>=100:
-            return "FC_1LTR"
-        elif t_max>=reflength-100 and t_min<=100 and n2-n3<100:
-            return "FC_2LTR"
-        elif t_max<reflength-100 and t_min>100 and (t1!=t3 or t2!=t4):
-            return "PC_nonLTR"
-        elif (t_max>=reflength-100 or t_min<=100) and (t1!=t3 or t2!=t4):
-            return "PC_1LTR"
-
+		return str(t_min)+"-"+str(t_max)
 
 
 def getCircle(f):
     d={}
-    reads=list(set(list(f["Readname"])))
-    for read in reads:
-        d[read]="NC"
-        sub=f.loc[f["Readname"]==read]
+    infors=list(set(list(f["infor"])))
+	for infor in infors:
+		read=infor.spli("_")[0]
+        d[infor]="NC"
+        sub=f.loc[f["infor"]==infor]
         sub=sub.sort_values(["Refname","ReadStart","ReadEnd"])
         l=list(zip(sub["ReadStart"],sub["ReadEnd"],sub["RefStart"],sub["RefEnd"],sub["Strand"],sub["Reflen"],sub["ReadLen"]))
         i=0
         while i<len(l)-1:
-            j=i+1
-            while j<len(l):
-                list1=l[i]
-                list2=l[j]
-                cirType=CircleType(list1,list2)
-                if cirType!="NC":
-                    d[read]=cirType
-                    break
-                    i=len(l)
-                else:
-                    j=j+1
-            i+=1
+            list1=l[i]
+			list2=l[i+1]
+            cirType=CircleType(list1,list2)
+            if cirType!="NC":
+               d[infor]=cirTyped
+               break
+            else:
+               i+=1
     f["Circle"]=f["Readname"].apply(lambda x: d[x])
     return f
 
 
-def GetTEreads(canfile):
+def GetReads(canfile):
     f_c=pd.read_table(canfile,header=0,sep="\t")
-    f_c=f_c.sort_values(["Readname","ReadStart","ReadEnd"])
-    f_circle=getCircle(f_c)
+    f_c["infor"]=f_c["Readname"]+"_"+f["Refname"]
+	f_c=f_c.sort_values(["infor","ReadStart","ReadEnd"])
+	f_circle=getCircle(f_c)
     f_circle.to_csv(canfile+"_circleAnalyze.txt",index=None,sep="\t")
     fc=f_circle.loc[f_circle["Circle"]!="NC"]
     fc.to_csv(pre+"_circles.txt",index=None,sep="\t")
@@ -181,8 +156,6 @@ def GetTEreads(canfile):
 
 
 
-
-
-getChimeric_reads(InputFile)
-GetTEreads(inputFile)
-#GetTEreads(inFile)
+getChimeric_reads(bamFile+"_AligTable.tsv")
+FilterReads(pre+"_rc90.tsv")
+Getreads(pre+".candi.tsv")
