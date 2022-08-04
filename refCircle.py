@@ -130,13 +130,17 @@ def getCircle(f):
         sub=sub.sort_values(["Refname","ReadStart","ReadEnd"])
         l=list(zip(sub["ReadStart"],sub["ReadEnd"],sub["RefStart"],sub["RefEnd"],sub["Strand"],sub["Reflen"],sub["ReadLen"]))
         i=0
-        while i<len(l)-1:
+        while i<len(l)-2:
             list1=l[i]
 			list2=l[i+1]
-            cirType=CircleType(list1,list2)
-            if cirType!="NC":
-               d[infor]=cirTyped
+			list3=l[i+2]
+            cirType1=CircleType(list1,list2)
+            cirType2=CircleType(list1,list3)
+			if cirType1!="NC":
+               d[infor]=cirType1
                break
+			elif cirType2!="NC":
+			   d[infor]=cirType2
             else:
                i+=1
     f["Circle"]=f["Readname"].apply(lambda x: d[x])
