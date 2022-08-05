@@ -18,10 +18,10 @@ warnings.filterwarnings('ignore')
 pd.set_option("display.max_column",40)
 
 parser=argparse.ArgumentParser()
-parser.add_argument("-bam","--inFile")
+parser.add_argument("-bam","--bamFile")
 parser.add_argument("-js","--JunSize",default=100)
 parser.add_argument("-Prefix","--Prefix",default=None)
-
+parser.add_argument("-ref","--reference")
 args=parser.parse_args()
 
 
@@ -29,9 +29,12 @@ pd.set_option("display.max_columns",40)
 
 bamFile=args.bamFile
 pre=args.Prefix
+ref=args.reference
 
 from bamConverter import bamConverter
 bamConverter().ConverAlignment(bamFile)
+
+
 
 records=list(SeqIO.parse(ref,"fasta"))
 d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
@@ -117,14 +120,14 @@ def CircleType(list1,list2):
     if isCircle(list1,list2) ==False:
         return "NC"
     else:
-		return str(t_min)+"-"+str(t_max)
+        return str(t_min)+"-"+str(t_max)
 
 
 def getCircle(f):
     d={}
     infors=list(set(list(f["infor"])))
-	for infor in infors:
-		read=infor.spli("_")[0]
+    for infor in infors:
+        read=infor.spli("_")[0]
         d[infor]="NC"
         sub=f.loc[f["infor"]==infor]
         sub=sub.sort_values(["Refname","ReadStart","ReadEnd"])
@@ -132,15 +135,15 @@ def getCircle(f):
         i=0
         while i<len(l)-2:
             list1=l[i]
-			list2=l[i+1]
-			list3=l[i+2]
+            list2=l[i+1]
+            list3=l[i+2]
             cirType1=CircleType(list1,list2)
             cirType2=CircleType(list1,list3)
-			if cirType1!="NC":
+            if cirType1!="NC":
                d[infor]=cirType1
                break
-			elif cirType2!="NC":
-			   d[infor]=cirType2
+            elif cirType2!="NC":
+               d[infor]=cirType2
             else:
                i+=1
     f["Circle"]=f["Readname"].apply(lambda x: d[x])
@@ -150,8 +153,8 @@ def getCircle(f):
 def GetReads(canfile):
     f_c=pd.read_table(canfile,header=0,sep="\t")
     f_c["infor"]=f_c["Readname"]+"_"+f["Refname"]
-	f_c=f_c.sort_values(["infor","ReadStart","ReadEnd"])
-	f_circle=getCircle(f_c)
+    f_c=f_c.sort_values(["infor","ReadStart","ReadEnd"])
+    f_circle=getCircle(f_c)
     f_circle.to_csv(canfile+"_circleAnalyze.txt",index=None,sep="\t")
     fc=f_circle.loc[f_circle["Circle"]!="NC"]
     fc.to_csv(pre+"_circles.txt",index=None,sep="\t")
@@ -159,7 +162,9 @@ def GetReads(canfile):
     circle=f_circle.drop_duplicates(["Readname"],keep="first").groupby(["Circle"],as_index=False).count()[["Circle","Readname"]].sort_values(["Circle"])
 
 
-
+print("Geting full read")
 getChimeric_reads(bamFile+"_AligTable.tsv")
+print("Filtering reads")
 FilterReads(pre+"_rc90.tsv")
-Getreads(pre+".candi.tsv")
+print("Get junction reads")
+GetReads(pre+".candi.tsv")
