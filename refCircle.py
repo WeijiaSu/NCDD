@@ -107,6 +107,17 @@ def isCircle(list1,list2):
         else:
             return False
 
+def CompleteCopy(sub,coordinate):
+    sub["s"]=sub["RefStart"].apply(lambda x: x>=int(coordinate[0])-100 and x<=int(coordinate[0])+100)
+    sub["e"]=sub["RefEnd"].apply(lambda x: x>=int(coordinate[1])-100 and x<=int(coordinate[1])+100)
+    sub=sub.loc[(sub["s"]==True) & (sub["e"]==True)]
+    if sub.shape[0]>0:
+        return True
+    else:
+        return False
+	
+
+
 def CircleType(list1,list2):
 
     n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
@@ -127,33 +138,38 @@ def getCircle(f):
     d={}
     infors=list(set(list(f["infor"])))
     for infor in infors:
-        read=infor.spli("_")[0]
         d[infor]="NC"
         sub=f.loc[f["infor"]==infor]
         sub=sub.sort_values(["Refname","ReadStart","ReadEnd"])
         l=list(zip(sub["ReadStart"],sub["ReadEnd"],sub["RefStart"],sub["RefEnd"],sub["Strand"],sub["Reflen"],sub["ReadLen"]))
         i=0
-        while i<len(l)-2:
+        while i<len(l)-1:
             list1=l[i]
             list2=l[i+1]
-            list3=l[i+2]
-            cirType1=CircleType(list1,list2)
-            cirType2=CircleType(list1,list3)
-            if cirType1!="NC":
-               d[infor]=cirType1
-               break
-            elif cirType2!="NC":
-               d[infor]=cirType2
+            cirType=CircleType(list1,list2)
+            if cirType!="NC":
+                if sub.shape[0]==2:
+                    d[infor]=cirType
+                    break
+                else:
+                    coordinate=cirType.split("-")
+                    comp=CompleteCopy(sub,coordinate)
+                    if comp==True:
+                        d[infor]=cirType
+                        break
+                    else:
+                        i+=1
             else:
-               i+=1
-    f["Circle"]=f["Readname"].apply(lambda x: d[x])
+                i+=1
+    f["Circle"]=f["infor"].apply(lambda x: d[x])
     return f
 
 
 def GetReads(canfile):
     f_c=pd.read_table(canfile,header=0,sep="\t")
-    f_c["infor"]=f_c["Readname"]+"_"+f["Refname"]
-    f_c=f_c.sort_values(["infor","ReadStart","ReadEnd"])
+    f_c["infor"]=f_c["Readname"]+"_"+f_c["Refname"]
+    f_c=f_c.sort_values(["infor","ReadStart","ReadEnd","RefStart","RefEnd"])
+    f_c=f_c.drop_duplicates(["infor","ReadStart","ReadEnd"],keep="first")
     f_circle=getCircle(f_c)
     f_circle.to_csv(canfile+"_circleAnalyze.txt",index=None,sep="\t")
     fc=f_circle.loc[f_circle["Circle"]!="NC"]
@@ -161,10 +177,11 @@ def GetReads(canfile):
     nc=f_circle.loc[f_circle["Circle"]=="NC"]
     circle=f_circle.drop_duplicates(["Readname"],keep="first").groupby(["Circle"],as_index=False).count()[["Circle","Readname"]].sort_values(["Circle"])
 
-
-print("Geting full read")
-getChimeric_reads(bamFile+"_AligTable.tsv")
-print("Filtering reads")
-FilterReads(pre+"_rc90.tsv")
-print("Get junction reads")
+files=os.listdir("./")
+if pre+"_rc90.tsv" not in files:
+    print("Geting full read")
+    getChimeric_reads(bamFile+"_AligTable.tsv")
+if pre+".candi.tsv" not in files:
+    print("Filtering reads")
+    FilterReads(pre+"_rc90.tsv")
 GetReads(pre+".candi.tsv")
