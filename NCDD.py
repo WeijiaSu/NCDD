@@ -126,12 +126,13 @@ def CircleType(list1,list2):
     t_min=min(t1,t2,t3,t4)
     n_max=max(n1,n2,n3,n4)
     n_min=min(n1,n2,n3,n4)
+    Overlap=n3-n2
     reflength=list1[-2]
     readlength=list1[-1]
     if isCircle(list1,list2) ==False:
         return "NC"
     else:
-        return str(t_min)+"-"+str(t_max)
+        return str(t_min)+"-"+str(t_max)+"_"+str(Overlap)
 
 
 def getCircle(f):
@@ -145,6 +146,7 @@ def getCircle(f):
         i=0
         while i<len(l)-1:
             list1=l[i]
+            j=i+1
             list2=l[i+1]
             cirType=CircleType(list1,list2)
             if cirType!="NC":
@@ -169,7 +171,6 @@ def GetReads(canfile):
     f_c=pd.read_table(canfile,header=0,sep="\t")
     f_c["infor"]=f_c["Readname"]+"_"+f_c["Refname"]
     f_c=f_c.sort_values(["infor","ReadStart","ReadEnd","RefStart","RefEnd"])
-    f_c=f_c.drop_duplicates(["infor","ReadStart","ReadEnd"],keep="first")
     f_circle=getCircle(f_c)
     f_circle.to_csv(canfile+"_circleAnalyze.txt",index=None,sep="\t")
     fc=f_circle.loc[f_circle["Circle"]!="NC"]
