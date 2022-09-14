@@ -14,16 +14,25 @@ def circleType(x):
 	cirCle_S=int(x.split("_")[0])
 	cirCle_E=int(x.split("_")[1])
 	cirCle_D=int(x.split("_")[-1])
-	if cirCle_S <300 and cirCle_E>8557 and cirCle_D<-100:
+	if cirCle_S <150 and cirCle_E>7139-150 and cirCle_D<-100:
 		return "1LTR_FL"
-	elif cirCle_S <300 and cirCle_E>8557 and cirCle_D>-100:
+	elif cirCle_S <150 and cirCle_E>7139-150 and cirCle_D>-100:
 		return "2LTR_FL"
-	elif cirCle_S <300 or cirCle_E>8557:
+	elif cirCle_S <150 or cirCle_E>7139-150:
 		return "1LTR_Frg"
 	else:
 		return "nonLTR_Frg"
 
-
+def circleInfor(x,ref_len):
+	cirCle_S=int(x.split("_")[0])
+	cirCle_E=int(x.split("_")[1])
+	cirCle_D=int(x.split("_")[-1])
+	
+	if cirCle_S <100 and cirCle_E>ref_len and cirCle_D<-100:
+		return "E_E_%so"%(cirCle_D)
+	
+	
+		
 
 
 def getFile(r,Out_name):
