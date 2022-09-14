@@ -132,7 +132,7 @@ def CircleType(list1,list2):
     if isCircle(list1,list2) ==False:
         return "NC"
     else:
-        return str(t_min)+"-"+str(t_max)+"_"+str(Overlap)
+        return str(t_min)+"_"+str(t_max)+"_"+str(Overlap)
 
 
 def getCircle(f):
@@ -154,7 +154,7 @@ def getCircle(f):
                     d[infor]=cirType
                     break
                 else:
-                    coordinate=cirType.split("-")
+                    coordinate=cirType.split("_")
                     comp=CompleteCopy(sub,coordinate)
                     if comp==True:
                         d[infor]=cirType
