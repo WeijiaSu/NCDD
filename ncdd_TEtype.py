@@ -6,83 +6,55 @@ import sys
 import pandas as pd
 pd.set_option("display.max_columns",40)
 
+# get file name and output name from the command line arguments
 res1=sys.argv[1]
+name=sys.argv[2]
 
-def getFile(r):
+# Function to determine the type of circle
+def circleType(x):
+	# Split the string by "_" and extract each component as integer
+	cirCle_S=int(x.split("_")[0])
+	cirCle_E=int(x.split("_")[1])
+	cirCle_D=int(x.split("_")[2])
+	cirCle_L=int(x.split("_")[-1])
+	# Check the conditions to determine the type of circle
+	if cirCle_S <100 and cirCle_E>cirCle_L-100 and cirCle_D<=-100:
+		return "1End_FL"
+	elif cirCle_S <100 and cirCle_E>cirCle_L-100 and cirCle_D>-100:
+		return "2Ends_FL"
+	elif cirCle_S <100 or cirCle_E>cirCle_L-100:
+		return "1End_Frg"
+	else:
+		return "noEnd_Frg"
+
+# Function to get the file, process and output the data
+def getFile(r,Out_name):
+	# Read the input file
 	f=pd.read_table(r)
+	# Filter the data for "Circle" column which are not "NC"
 	f=f.loc[f["Circle"]!="NC"]
-	f["D"]=f["Circle"].apply(lambda x: int(x.split("_")[-1]))
-	f.loc[f["D"]>1,"JunFeature"]="Ins"
-	f.loc[f["D"]<1,"JunFeature"]="Del"
-	f.loc[f["D"]==1,"JunFeature"]="Adj"
-	f["CirS"]=f["Circle"].apply(lambda x: int(x.split("_")[0]))
-	f["CirE"]=f["Circle"].apply(lambda x: int(x.split("_")[1]))
-	f["CirSize"]=f["CirE"]-f["CirS"]+1
-	f=f.drop(["m","infor","p","D","CirS","CirE"],axis=1)
-	f.to_csv(r+".datatype.tsv",index=None,sep="\t")
-	m=f.groupby(["Readname"],as_index=False).filter(lambda x:len(x)>2)	
-	m=m.drop_duplicates(["Readname"],keep="first")
-	g=f.drop_duplicates(["Readname"],keep="first")
-	print("Number of circle reads: %s"%(g.shape[0]))
-	print("Largest circle size: %s"%(g["CirSize"].max()))
-	print("Smallest circle size: %s"%(g["CirSize"].min()))
-	print("Average circle size: %s"%(g["CirSize"].mean()))
-	print("Tandem repeat>1 reads: %s" %(m.shape[0]))
+	# Drop the unnecessary columns "m", "infor", "p"
+	f=f.drop(["m","infor","p"],axis=1)
+	# Concatenate "Circle" and "Reflen" columns to get "circileInfor"
+	f["circileInfor"]=f["Circle"]+"_"+f["Reflen"].apply(str)
+	# Drop the duplicate rows based on "Readname" column, keeping the first one
+	f=f.drop_duplicates(["Readname"],keep="first")
+	# Apply the function "circleType" to the "Circle" column to get the type of circle
+	f["Type"]=f["Circle"].apply(lambda x : circleType(x))
+	# Create a dictionary with "Readname" as key and "Type" as value
+	d=dict(zip(list(f["Readname"]),list(f["Type"])))
 
-getFile(res1)
+	# Read the input file again
+	f_=pd.read_table(r)
+	# Filter the data for "Circle" column which are not "NC"
+	f_=f_.loc[f_["Circle"]!="NC"]
+	# Add the "Type" column based on the dictionary created above
+	f_["Type"]=f_["Readname"].apply(lambda x: d[x])
+	# Write the output to the file "Out_name_data.txt"
+	f_.to_csv(Out_name + "_data.txt", index=None, sep="\t")
+	g = f.groupby(["Type"], as_index=False).count()
+	g = g[["Type", "Readname"]]
+	print(g)
+	g.to_csv(Out_name, index=None, sep="\t", header=None)
 
-
-import os
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
-import sys
-import pandas as pd
-pd.set_option("display.max_columns",40)
-
-# Get the input file name from command line arguments
-res1=sys.argv[1]
-
-def getFile(r):
-	# Read the input file and store it in a pandas dataframe
-	f=pd.read_table(r)
-
-	# Filter out all the rows where the "Circle" column has the value "NC"
-	f=f.loc[f["Circle"]!="NC"]
-
-	# Create a new column "D" which contains the value from the "Circle" column after splitting it by "_"
-	# and taking the last element
-	f["D"]=f["Circle"].apply(lambda x: int(x.split("_")[-1]))
-
-	# Create a new column "JunFeature" and fill it with "Ins" if the value of "D" is greater than 1,
-	# "Del" if the value of "D" is less than 1, and "Adj" if the value of "D" is equal to 1
-	f.loc[f["D"]>1,"JunFeature"]="Ins"
-	f.loc[f["D"]<1,"JunFeature"]="Del"
-	f.loc[f["D"]==1,"JunFeature"]="Adj"
-
-	# Create columns "CirS" and "CirE" which contain the start and end values of the "Circle" column after splitting it
-	f["CirS"]=f["Circle"].apply(lambda x: int(x.split("_")[0]))
-	f["CirE"]=f["Circle"].apply(lambda x: int(x.split("_")[1]))
-
-	# Create a column "CirSize" which contains the size of the circle
-	f["CirSize"]=f["CirE"]-f["CirS"]+1
-
-	# Drop the columns "m", "infor", "p", "D", "CirS", and "CirE"
-	f=f.drop(["m","infor","p","D","CirS","CirE"],axis=1)
-
-	# Write the resulting dataframe to a new file with .datatype.tsv extension
-	f.to_csv(r+".datatype.tsv",index=None,sep="\t")
-
-	# Filter out all the rows where the same "Readname" has more than 2 occurrences
-	m=f.groupby(["Readname"],as_index=False).filter(lambda x:len(x)>2)	
-
-	# Keep only the first unique "Readname"
-	m=m.drop_duplicates(["Readname"],keep="first")
-
-	# Keep only the first unique "Readname" in the original dataframe
-	g=f.drop_duplicates(["Readname"],keep="first")
-
-	# Print the results
-	print("Number of circle reads: %s"%(g.shape[0]))
-	print("Largest circle size: %s
-
+getFile(res1, name)	
