@@ -17,7 +17,15 @@ def getFile(r):
 	f["CirS"]=f["Circle"].apply(lambda x: int(x.split("_")[0]))
 	f["CirE"]=f["Circle"].apply(lambda x: int(x.split("_")[1]))
 	circle=f[["Refname","CirS","CirE"]]
-	circle=circle.to_csv(res1+"circleCoor.tsv",index=None,sep="\t")
+	circle=circle.sort_values(["Refname","CirS","CirE"])
+	circle=circle.to_csv(res1+"circleCoor.tsv",header=None,index=None,sep="\t")
 
+	bedcluster="bedtools cluster -i %s >%s"%(res1+"circleCoor.tsv",res1+"circleCoorCluster.tsv")
+	os.system(bedcluster)
+	
+	cluster=pd.read_table(res1+"circleCoorCluster.tsv",header=None)
+	cluster=cluster.groupby([3],as_index=False).count()
+	print("Number of circles: %s"%(cluster.shape[0]))
+	print("Most frequent circle: %s"%(cluster[0].max()))
 getFile(res1)
 
