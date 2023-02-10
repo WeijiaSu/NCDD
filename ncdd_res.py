@@ -47,6 +47,7 @@ def getFile(r):
 
 	# Keep only the first unique "Readname" in the original dataframe
 	g=f.drop_duplicates(["Readname"],keep="first")
+	
 
 	# Print the results
 	print("Number of circle reads: %s"%(g.shape[0]))
@@ -54,7 +55,12 @@ def getFile(r):
 	print("Smallest circle size: %s"%(g["CirSize"].min()))
 	print("Average circle size: %s"%(g["CirSize"].mean()))
 	print("Tandem repeat>1 reads: %s" %(m.shape[0]))
-
+	
+	# Sort dataframe f and print sample lines
+	f=f.sort_values(["CirSize","Readname","ReadStart","ReadEnd"],ascending=[False,True,True,True])
+	f=f.groupby(["Readname"],as_index=False).filter(lambda x:len(x)>2)
+	print(f[0:10])
+	print(f.shape)
 getFile(res1)
 
 
