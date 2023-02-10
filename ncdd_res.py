@@ -47,7 +47,7 @@ def getFile(r):
 
 	# Keep only the first unique "Readname" in the original dataframe
 	g=f.drop_duplicates(["Readname"],keep="first")
-	
+
 
 	# Print the results
 	print("Number of circle reads: %s"%(g.shape[0]))
@@ -61,6 +61,6 @@ def getFile(r):
 	#f=f.groupby(["Readname"],as_index=False).filter(lambda x:len(x)>2)
 	#print(f[0:20])
 	#print(f.shape)
-getFile(res1)
 
+getFile(res1)
 
