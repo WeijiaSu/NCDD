@@ -57,10 +57,10 @@ def getFile(r):
 	print("Tandem repeat>1 reads: %s" %(m.shape[0]))
 	
 	# Sort dataframe f and print sample lines
-	#f=f.sort_values(["CirSize","Readname","ReadStart","ReadEnd"],ascending=[False,True,True,True])
+	f=f.sort_values(["CirSize","Readname","ReadStart","ReadEnd"],ascending=[False,True,True,True])
 	#f=f.groupby(["Readname"],as_index=False).filter(lambda x:len(x)>2)
-	#print(f[0:20])
-	#print(f.shape)
+	print(f[0:20])
+	print(f.shape)
 
 getFile(res1)
 

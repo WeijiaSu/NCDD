@@ -24,7 +24,8 @@ def getFile(r):
 	os.system(bedcluster)
 	
 	cluster=pd.read_table(res1+"circleCoorCluster.tsv",header=None)
-	cluster=cluster.groupby([3],as_index=False).count()
+	cluster=cluster.groupby([3],as_index=False).count().sort_values([0],ascending=[False])
+	print(cluster[0:10])
 	print("Number of circles: %s"%(cluster.shape[0]))
 	print("Most frequent circle: %s"%(cluster[0].max()))
 getFile(res1)
