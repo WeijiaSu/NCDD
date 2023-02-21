@@ -21,15 +21,12 @@ pd.set_option("display.max_column",40)
 def getCount(file,TE):
 	f=pd.read_table(file,header=0,sep="\t")
 	f=f.loc[f["Circle"]!="NC"]
-	#print(f.shape)
 	f=f.sort_values(["Refname","Readname","RefStart"])
 	f=f.groupby(["Refname","Readname"]).filter(lambda x: len(x)>1)
-	#print(f.shape)
-	#print(f[0:10])
 	
 	t=f.loc[f["Refname"]==TE]
-	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
-		tp=t.loc[t["Circle"]==i]
+	for i in ["1End_FL","2Ends_FL","1End_Frg","noEnd_Frg"]:
+		tp=t.loc[t["Type"]==i]
 		count=tp.drop_duplicates(["Readname"],keep="first")
 		print(count.shape[0])
 	return t
@@ -45,8 +42,9 @@ def LTR1_frag(file,TE,side):
 	f=f.sort_values(["Refname","Readname","RefStart"])
 	f=f.groupby(["Refname","Readname"]).filter(lambda x: len(x)>1)
 	t=f.loc[f["Refname"]==TE]
-	tp=t.loc[t["Circle"]=="PC_1LTR"]
+	tp=t.loc[t["Type"]=="1End_Frg"]
 	read_list=[]
+	refLen=int(set(f["Reflen"])[0])
 	for r in set(tp["Readname"]):
 		sub=tp.loc[tp["Readname"]==r]
 		if side==1:
@@ -55,7 +53,7 @@ def LTR1_frag(file,TE,side):
 				read_list.append(r)
 		else:
 			end=list(sub["RefEnd"])
-			if max(end)>=7062-200:
+			if max(end)>=refLen-200:
 				read_list.append(r)
 	side_df=tp.loc[tp["Readname"].isin(read_list)]
 	read_number=side_df.drop_duplicates(["Readname"],keep="first")
@@ -65,7 +63,7 @@ def LTR1_frag(file,TE,side):
 
 def getBed(f,TEname,sizeFactor,sampleName):
 	#reLen=list(f["Reflen"])[0]
-	reLen=7062
+	
 #	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
 	for i in ["PC_1LTR"]:
 		tp=f.loc[f["Circle"]==i]
@@ -115,19 +113,19 @@ HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubag
 
 #HMS=LTR1_frag("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/20201024_HMS_embryo_0-6h_gDNA.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle",1)
 #getBed(HMS,"HMS-beagle",0.68,"20201024_1LTR1_")
-d1={}
-d1[1]=0.90
-d1[2]=0.87
-d1[3]=1.71
-d1[4]=0.83
-d1[5]=0.94
+#d1={}
+#d1[1]=0.90
+#d1[2]=0.87
+#d1[3]=1.71
+#d1[4]=0.83
+#d1[5]=0.94
 
-d2={}
-d2[1]=0.97
-d2[2]=1.06
-d2[3]=0.82
-d2[4]=1.34
-d2[5]=1.06
+#d2={}
+#d2[1]=0.97
+#d2[2]=1.06
+#d2[3]=0.82
+#d2[4]=1.34
+#d2[5]=1.06
 
 
 #for i in range(1,6):
