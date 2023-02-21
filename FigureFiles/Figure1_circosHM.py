@@ -32,11 +32,6 @@ def getCount(file,TE):
 	return t
 	
 
-#HMS=getCount("171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.allTE+GFP_circles.txt","HMS-Beagle")
-#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
-
-
-
 def LTR1_frag(file,TE,side):
 	f=pd.read_table(file)
 	f=f.sort_values(["Refname","Readname","RefStart"])
@@ -101,6 +96,11 @@ def getBed(f,TEname,sizeFactor,sampleName):
 			print(max(list(new_f["Value"])))	
 			rm="rm %s %s %s "%(TEname+"_"+i+".bed.tsv",TEname+"_TEsize",TEname+"_"+i+".bedgraph.tsv")
 			os.system(rm)
+
+#HMS=getCount("171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.allTE+GFP_circles.txt","HMS-Beagle")
+#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
+
+
 
 HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
 #getBed(HMS,"HMS-beagle",1,"171107")
