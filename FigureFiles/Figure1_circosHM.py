@@ -62,7 +62,7 @@ def LTR1_frag(file,TE,side):
 
 
 def getBed(f,TEname,sizeFactor,sampleName):
-	#reLen=list(f["Reflen"])[0]
+	reLen=list(f["Reflen"])[0]
 	
 	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
 #	for i in ["PC_1LTR"]:
@@ -72,17 +72,17 @@ def getBed(f,TEname,sizeFactor,sampleName):
 			new_f=pd.DataFrame(l)
 			new_f["v"]=0
 			new_f["Refname"]=TEname
-			new_f[["Refname",0,1,"v"]].to_csv(sampleName+"_"+TEname+"_"+i+".090922.20X.bedgraph.expend.tsv",header=None,index=None,sep="\t")
+			new_f[["Refname",0,1,"v"]].to_csv(sampleName+"_"+TEname+"_"+i+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
 		else:
 			tp_bed=tp.drop_duplicates(["Refname","RefStart","RefEnd","Readname"],keep="first")
 			tp_bed=tp[["Refname","RefStart","RefEnd"]]
 			tp_bed=tp_bed.sort_values(["Refname","RefStart","RefEnd"])
-			tp_bed.to_csv(TEname+"_"+i+".bed.090922.tsv",header=None,index=None,sep="\t")
+			tp_bed.to_csv(TEname+"_"+i+".bed.tsv",header=None,index=None,sep="\t")
 			g=tp[["Refname","Reflen"]].drop_duplicates(["Refname","Reflen"],keep="first")
 			g.to_csv(TEname+"_TEsize",header=None,index=None,sep="\t")
-			bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (TEname+"_"+i+".bed.090922.tsv",TEname+"_TEsize",sizeFactor,TEname+"_"+i+".090922.20X.bedgraph.tsv")
+			bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (TEname+"_"+i+".bed.tsv",TEname+"_TEsize",sizeFactor,TEname+"_"+i+".bedgraph.tsv")
 			os.system(bedtools)
-			bg=pd.read_table(TEname+"_"+i+".090922.20X.bedgraph.tsv",header=None)
+			bg=pd.read_table(TEname+"_"+i+".bedgraph.tsv",header=None)
 			bg["c"]=bg[1].apply(str)+"_"+bg[2].apply(str)
 			d=dict(zip(bg["c"],bg[3]))
 			l=[]
@@ -96,10 +96,10 @@ def getBed(f,TEname,sizeFactor,sampleName):
 			new_f["RefEnd"]=new_f[0]+1
 			new_f["Value"]=new_f[1]
 			new_f=new_f[["Refname","RefStart","RefEnd","Value"]]
-			new_f.to_csv(sampleName+"_"+TEname+"_"+i+".090922.20X.bedgraph.expend.tsv",header=None,index=None,sep="\t")
+			new_f.to_csv(sampleName+"_"+TEname+"_"+i+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
 			#new_f.to_csv(sampleName+"_"+TEname+"_"+i+".090922.bedgraph.expend.tsv",header=None,index=None,sep="\t")
 			print(max(list(new_f["Value"])))	
-			rm="rm %s %s %s "%(TEname+"_"+i+".bed.090922.tsv",TEname+"_TEsize",TEname+"_"+i+".090922.20X.bedgraph.tsv")
+			rm="rm %s %s %s "%(TEname+"_"+i+".bed.tsv",TEname+"_TEsize",TEname+"_"+i+".bedgraph.tsv")
 			os.system(rm)
 
 HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
@@ -113,12 +113,6 @@ HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubag
 
 #HMS=LTR1_frag("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/20201024_HMS_embryo_0-6h_gDNA.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle",1)
 #getBed(HMS,"HMS-beagle",0.68,"20201024_1LTR1_")
-#d1={}
-#d1[1]=0.90
-#d1[2]=0.87
-#d1[3]=1.71
-#d1[4]=0.83
-#d1[5]=0.94
 
 #d2={}
 #d2[1]=0.97
