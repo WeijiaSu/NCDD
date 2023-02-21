@@ -64,8 +64,8 @@ def LTR1_frag(file,TE,side):
 def getBed(f,TEname,sizeFactor,sampleName):
 	#reLen=list(f["Reflen"])[0]
 	
-#	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
-	for i in ["PC_1LTR"]:
+	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
+#	for i in ["PC_1LTR"]:
 		tp=f.loc[f["Circle"]==i]
 		if tp.shape[0]==0:
 			l=[[m,m+1] for m in range(0,reLen)]
