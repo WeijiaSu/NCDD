@@ -18,18 +18,17 @@ warnings.filterwarnings('ignore')
 
 pd.set_option("display.max_column",40)
 
-def getCount(file,TE):
+def getCount(file,TE,Type):
 	f=pd.read_table(file,header=0,sep="\t")
 	f=f.loc[f["Circle"]!="NC"]
 	f=f.sort_values(["Refname","Readname","RefStart"])
 	f=f.groupby(["Refname","Readname"]).filter(lambda x: len(x)>1)
 	
 	t=f.loc[f["Refname"]==TE]
-	for i in ["1End_FL","2Ends_FL","1End_Frg","noEnd_Frg"]:
-		tp=t.loc[t["Type"]==i]
-		count=tp.drop_duplicates(["Readname"],keep="first")
-		print(count.shape[0])
-		print(tp)	
+	tp=t.loc[t["Type"]==Type]
+	count=tp.drop_duplicates(["Readname"],keep="first")
+	print(count.shape[0])
+	return tp	
 
 def LTR1_frag(file,TE,side):
 	f=pd.read_table(file)
@@ -56,7 +55,7 @@ def LTR1_frag(file,TE,side):
 
 
 def getBed(f,refLen,TEname,sizeFactor,sampleName,Type):
-	f=tp
+	tp=f
 	if tp.shape[0]==0:
 		l=[[m,m+1] for m in range(0,reLen)]
 		new_f=pd.DataFrame(l)
@@ -67,12 +66,12 @@ def getBed(f,refLen,TEname,sizeFactor,sampleName,Type):
 		tp_bed=tp.drop_duplicates(["Refname","RefStart","RefEnd","Readname"],keep="first")
 		tp_bed=tp[["Refname","RefStart","RefEnd"]]
 		tp_bed=tp_bed.sort_values(["Refname","RefStart","RefEnd"])
-		tp_bed.to_csv(TEname+"_"+i+".bed.tsv",header=None,index=None,sep="\t")
+		tp_bed.to_csv(sampleName+"_"+TEname+"_"+Type+".bed.tsv",header=None,index=None,sep="\t")
 		g=tp[["Refname","Reflen"]].drop_duplicates(["Refname","Reflen"],keep="first")
 		g.to_csv(TEname+"_TEsize",header=None,index=None,sep="\t")
-		bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (TEname+"_"+i+".bed.tsv",TEname+"_TEsize",sizeFactor,TEname+"_"+Type+".bedgraph.tsv")
+		bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (sampleName+"_"+TEname+"_"+Type+".bed.tsv",TEname+"_TEsize",sizeFactor,sampleName+"_"+TEname+"_"+Type+".bedgraph.tsv")
 		os.system(bedtools)
-		bg=pd.read_table(TEname+"_"+i+".bedgraph.tsv",header=None)
+		bg=pd.read_table(sampleName+"_"+TEname+"_"+Type+".bedgraph.tsv",header=None)
 		bg["c"]=bg[1].apply(str)+"_"+bg[2].apply(str)
 		d=dict(zip(bg["c"],bg[3]))
 		l=[]
@@ -88,42 +87,21 @@ def getBed(f,refLen,TEname,sizeFactor,sampleName,Type):
 		new_f=new_f[["Refname","RefStart","RefEnd","Value"]]
 		new_f.to_csv(sampleName+"_"+TEname+"_"+Type+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
 		print(max(list(new_f["Value"])))	
-		rm="rm %s %s %s "%(TEname+"_"+i+".bed.tsv",TEname+"_TEsize",TEname+"_"+i+".bedgraph.tsv")
+		rm="rm %s %s %s "%(sampleName+"_"+TEname+"_"+Type+".bed.tsv",TEname+"_TEsize",sampleName+"_"+TEname+"_"+Type+".bedgraph.tsv")
 		os.system(rm)
 
-#HMS=getCount("171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.allTE+GFP_circles.txt","HMS-Beagle")
-#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
+d2={}
+d2["NegativeControlpreprocess"]=0.97
+d2["PositiveControlpreprocess"]=1.06
+d2["shcorollapreprocess"]=0.82
+d2["shmei218preprocess"]=1.34
+d2["shXpdpreprocess"]=1.06
 
+dir="/data/zhanglab/Alexis_Bailey/"
 
-
-#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
-#getBed(HMS,"HMS-beagle",1,"171107")
-
-#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/20201024_HMS_embryo_0-6h_gDNA.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
-#getBed(HMS,"HMS-beagle",0.68,"20201024")
-
-#HMS=LTR1_frag("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle",1)
-#getBed(HMS,"HMS-beagle",1,"171107_1LTR1_")
-
-#HMS=LTR1_frag("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/20201024_HMS_embryo_0-6h_gDNA.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle",1)
-#getBed(HMS,"HMS-beagle",0.68,"20201024_1LTR1_")
-
-#d2={}
-#d2[1]=0.97
-#d2[2]=1.06
-#d2[3]=0.82
-#d2[4]=1.34
-#d2[5]=1.06
-
-
-#for i in range(1,6):
-#	HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig4/rep1-210806_vas_Alt-EJ_circle-seq/barcode0%s.fastq.chop.fastq_HMS-Beagle_circleAnalyze.txt"%(i),"HMS-Beagle")
-#	getBed(HMS,"HMS-beagle",d1[i],"barcode0%s_1_"%(i))
-
-
-#for i in range(1,6):
-#	HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig4/rep2-211102-fly-vas_aEJ_KD-ovary-eccDNA/barcode0%s.fastq.chop.fastq_HMS-Beagle_circleAnalyze.txt"%(i),"HMS-Beagle")
-#	getBed(HMS,"HMS-beagle",d2[i],"barcode0%s_2_"%(i))
+for i in ["NegativeControlpreprocess","PositiveControlpreprocess","shcorollapreprocess","shmei218preprocess","shXpdpreprocess"]:
+	HMS=getCount(dir+i+".fastq.minimap2.TE_full.sorted.bam_TE_full.fa.Type.txt_data.txt","HMS-Beagle","1End_FL")
+	getBed(HMS,7062,"HMS-beagle",d2[i],i,"1End_FL")
 
 
 #for i in range(1,6):
