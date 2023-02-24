@@ -29,8 +29,7 @@ def getCount(file,TE):
 		tp=t.loc[t["Type"]==i]
 		count=tp.drop_duplicates(["Readname"],keep="first")
 		print(count.shape[0])
-	return t
-	
+		print(tp)	
 
 def LTR1_frag(file,TE,side):
 	f=pd.read_table(file)
@@ -56,53 +55,48 @@ def LTR1_frag(file,TE,side):
 	return side_df
 
 
-def getBed(f,TEname,sizeFactor,sampleName):
-	reLen=list(f["Reflen"])[0]
-	
-	for i in ["FC_1LTR","FC_2LTR","PC_1LTR","PC_nonLTR"]:
-#	for i in ["PC_1LTR"]:
-		tp=f.loc[f["Circle"]==i]
-		if tp.shape[0]==0:
-			l=[[m,m+1] for m in range(0,reLen)]
-			new_f=pd.DataFrame(l)
-			new_f["v"]=0
-			new_f["Refname"]=TEname
-			new_f[["Refname",0,1,"v"]].to_csv(sampleName+"_"+TEname+"_"+i+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
-		else:
-			tp_bed=tp.drop_duplicates(["Refname","RefStart","RefEnd","Readname"],keep="first")
-			tp_bed=tp[["Refname","RefStart","RefEnd"]]
-			tp_bed=tp_bed.sort_values(["Refname","RefStart","RefEnd"])
-			tp_bed.to_csv(TEname+"_"+i+".bed.tsv",header=None,index=None,sep="\t")
-			g=tp[["Refname","Reflen"]].drop_duplicates(["Refname","Reflen"],keep="first")
-			g.to_csv(TEname+"_TEsize",header=None,index=None,sep="\t")
-			bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (TEname+"_"+i+".bed.tsv",TEname+"_TEsize",sizeFactor,TEname+"_"+i+".bedgraph.tsv")
-			os.system(bedtools)
-			bg=pd.read_table(TEname+"_"+i+".bedgraph.tsv",header=None)
-			bg["c"]=bg[1].apply(str)+"_"+bg[2].apply(str)
-			d=dict(zip(bg["c"],bg[3]))
-			l=[]
-			for k in d:
-				v=d[k]
-				for j in range(int(k.split("_")[0]),int(k.split("_")[1])):
-					l.append([j,v])
-			new_f=pd.DataFrame(l)
-			new_f["Refname"]=TEname
-			new_f["RefStart"]=new_f[0]
-			new_f["RefEnd"]=new_f[0]+1
-			new_f["Value"]=new_f[1]
-			new_f=new_f[["Refname","RefStart","RefEnd","Value"]]
-			new_f.to_csv(sampleName+"_"+TEname+"_"+i+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
-			#new_f.to_csv(sampleName+"_"+TEname+"_"+i+".090922.bedgraph.expend.tsv",header=None,index=None,sep="\t")
-			print(max(list(new_f["Value"])))	
-			rm="rm %s %s %s "%(TEname+"_"+i+".bed.tsv",TEname+"_TEsize",TEname+"_"+i+".bedgraph.tsv")
-			os.system(rm)
+def getBed(f,refLen,TEname,sizeFactor,sampleName,Type):
+	f=tp
+	if tp.shape[0]==0:
+		l=[[m,m+1] for m in range(0,reLen)]
+		new_f=pd.DataFrame(l)
+		new_f["v"]=0
+		new_f["Refname"]=TEname
+		new_f[["Refname",0,1,"v"]].to_csv(sampleName+"_"+TEname+"_"+Type+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
+	else:
+		tp_bed=tp.drop_duplicates(["Refname","RefStart","RefEnd","Readname"],keep="first")
+		tp_bed=tp[["Refname","RefStart","RefEnd"]]
+		tp_bed=tp_bed.sort_values(["Refname","RefStart","RefEnd"])
+		tp_bed.to_csv(TEname+"_"+i+".bed.tsv",header=None,index=None,sep="\t")
+		g=tp[["Refname","Reflen"]].drop_duplicates(["Refname","Reflen"],keep="first")
+		g.to_csv(TEname+"_TEsize",header=None,index=None,sep="\t")
+		bedtools="bedtools genomecov -bga -i %s -g %s -scale %s> %s"% (TEname+"_"+i+".bed.tsv",TEname+"_TEsize",sizeFactor,TEname+"_"+Type+".bedgraph.tsv")
+		os.system(bedtools)
+		bg=pd.read_table(TEname+"_"+i+".bedgraph.tsv",header=None)
+		bg["c"]=bg[1].apply(str)+"_"+bg[2].apply(str)
+		d=dict(zip(bg["c"],bg[3]))
+		l=[]
+		for k in d:
+			v=d[k]
+			for j in range(int(k.split("_")[0]),int(k.split("_")[1])):
+				l.append([j,v])
+		new_f=pd.DataFrame(l)
+		new_f["Refname"]=TEname
+		new_f["RefStart"]=new_f[0]
+		new_f["RefEnd"]=new_f[0]+1
+		new_f["Value"]=new_f[1]
+		new_f=new_f[["Refname","RefStart","RefEnd","Value"]]
+		new_f.to_csv(sampleName+"_"+TEname+"_"+Type+".bedgraph.expend.tsv",header=None,index=None,sep="\t")
+		print(max(list(new_f["Value"])))	
+		rm="rm %s %s %s "%(TEname+"_"+i+".bed.tsv",TEname+"_TEsize",TEname+"_"+i+".bedgraph.tsv")
+		os.system(rm)
 
 #HMS=getCount("171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.allTE+GFP_circles.txt","HMS-Beagle")
 #HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
 
 
 
-HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
+#HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/171107_LW1_aubago_eggs.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
 #getBed(HMS,"HMS-beagle",1,"171107")
 
 #HMS=getCount("/data/zhanglab/Weijia_Su/2021_fly_ecc/Fig2/090922/20201024_HMS_embryo_0-6h_gDNA.fastq.chop.fastq-TE_full.fa.TE+GFP__circleAnalyze.txt","HMS-Beagle")
