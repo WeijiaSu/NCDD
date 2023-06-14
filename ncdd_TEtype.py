@@ -40,7 +40,7 @@ def getFile(r,Out_name):
 	# Drop the duplicate rows based on "Readname" column, keeping the first one
 	f=f.drop_duplicates(["Readname"],keep="first")
 	# Apply the function "circleType" to the "Circle" column to get the type of circle
-	f["Type"]=f["Circle"].apply(lambda x : circleType(x))
+	f["Type"]=f["circileInfor"].apply(lambda x : circleType(x))
 	# Create a dictionary with "Readname" as key and "Type" as value
 	d=dict(zip(list(f["Readname"]),list(f["Type"])))
 
