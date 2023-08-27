@@ -24,6 +24,9 @@ The NCDD.py script is designed to analyze nanopore sequencing data to identify a
   - warnings
   - cigar (optional)
 
+
+![circle_reads](https://github.com/WeijiaSu/NCDD/assets/32049018/d4668b47-d0c9-4116-bbc6-78e9e16c2ca7)
+
 ## Usage
 
 ```bash
@@ -53,3 +56,5 @@ PREFIX_LiAg.tsv: File containing linear alignments.
 PREFIX.candi.tsv: File containing candidate reads for circular DNA.
 PREFIX_circles.txt: File containing reads classified as circles.
 PREFIX_candi.tsv_circleAnalyze.txt: Analysis of potential circular reads.
+
+
