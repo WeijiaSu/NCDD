@@ -24,8 +24,7 @@ The NCDD.py script is designed to analyze nanopore sequencing data to identify a
   - warnings
   - cigar (optional)
 
-  
-[546247e1-793f-45f8-847d-b2a2463b430e.pdf](https://github.com/WeijiaSu/NCDD/files/12457673/546247e1-793f-45f8-847d-b2a2463b430e.pdf)
+![546247e1-793f-45f8-847d-b2a2463b430e](https://github.com/WeijiaSu/NCDD/assets/32049018/377a5a7e-1a44-491c-be59-afa9d80a0620)
 
 
 ## Usage
