@@ -11,7 +11,7 @@ from cigar import Cigar
 from collections import Counter
 import numpy as np
 import warnings
-
+import pandas as pd
 
 warnings.filterwarnings('ignore')
 pd.set_option("display.max_column",40)
@@ -32,7 +32,7 @@ ref=args.reference
 
 from bamToPaf import bamConverter
 
-bamConverter().ConverAlignment(bamfile,pre)
+bamConverter().ConverAlignment(bamFile,pre)
 
 #records=list(SeqIO.parse(ref,"fasta"))
 #d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
