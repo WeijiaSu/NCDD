@@ -35,54 +35,32 @@ from bamToPaf import bamConverter
 
 #bamConverter().ConverAlignment(bamFile,pre)
 
-#records=list(SeqIO.parse(ref,"fasta"))
-#d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
 #
-#
-def filterTEreads(TE_paf):
-	f_te=pd.read_table(TE_paf)
-	bedA=f_te[["QName","QLen"]].drop_duplicates(["QName"],keep="first")
+def filterTEreads(mapped_paf):
+	f=pd.read_table(mapped_paf)
+	s1=f.drop_duplicates(["QName"],keep="first").shape[0]
+
+	bedA=f[["QName","QLen"]].drop_duplicates(["QName"],keep="first")
 	bedA["s"]=0
 	bedA[["QName","s","QLen"]].to_csv(pName+".bedA.bed",header=None,index=None,sep="\t")
-	f_te[["QName","QStart","QEnd"]].to_csv(pName+".bedB.bed",header=None,index=None,sep="\t")
+	f[["QName","QStart","QEnd"]].to_csv(pName+".bedB.bed",header=None,index=None,sep="\t")
 	bedtools="bedtools coverage -a %s -b %s > %s"%(pName+".bedA.bed",pName+".bedB.bed",pName+".bed")
 	os.system(bedtools)
 	
 	f_bed=pd.read_table(pName+".bed",header=None)
 	f_bed["cutoff"]=f_bed[2]-f_bed[2]*f_bed[6]
-	f_bed=f_bed.loc[f_bed["cutoff"]>=fl*2]
-	f_te=f_te.loc[f_te["QName"].isin(f_bed[0])]
-	f_te.to_csv(pName+"_TE.paf"+".filter.paf",index=None,sep="\t")
-	#os.remove(pName+".bedA.bed")
-	#os.remove(pName+".bedB.bed")
-	#os.remove(pName+".bed")
+	f_bed=f_bed.loc[(f_bed["cutoff"]<=fl) | (f_bed[6]>=0.9)]
 	
+	f=f.loc[f["QName"].isin(f_bed[0])]
+	s2=f.drop_duplicates(["QName"],keep="first").shape[0]
+	f.to_csv(pName+".filter.full.paf",index=None,sep="\t")
+	os.remove(pName+".bedA.bed")
+	os.remove(pName+".bedB.bed")
+	os.remove(pName+".bed")
+	print("Total aligned reads %s; Fully aligned reads %s (%s)"%(s1,s2,round(s2/s1*100,2)))	
 filterTEreads(pName+".paf")
 
 
-#def map_ratio(sub_f):
-#  r_len=int(list(sub_f["ReadLen"])[0])
-#  l=zip(sub_f["ReadStart"],sub_f["ReadEnd"])
-#  a=np.array([0]*r_len)
-#  for i in l:
-#    a[i[0]:i[1]+1]=1
-#  return list(a).count(1)
-#
-#def getChimeric_reads(infile):
-#  f=pd.read_table(infile,header=0,sep="\t")
-#  f=f.sort_values(["Readname","ReadStart","ReadEnd"])
-#  s1=f.drop_duplicates(["Readname"],keep="first").shape[0]
-#  f["m"]=0
-#  f["infor"]=f["Readname"]+"_"+f["Refname"]
-#  for r in set(f["infor"]):
-#    sub_f=f.loc[f["infor"]==r]
-#    p=map_ratio(sub_f)
-#    f.loc[f["infor"]==r,"m"]=p
-#  f["p"]=f["m"]/f["ReadLen"]
-#  re=f.loc[f["p"]<0.9]
-#  f=f.loc[f["p"]>=0.9]
-#  f.to_csv(pre+"_rc90.tsv",index=None,sep="\t")
-#  s2=f.drop_duplicates(["Readname"],keep="first").shape[0]
 #  print("Total aligned reads %s; Fully aligned reads %s (%s)"%(s1,s2,round(s2/s1*100,2)))
 #
 #
