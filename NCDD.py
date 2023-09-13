@@ -18,7 +18,7 @@ pd.set_option("display.max_column",40)
 
 parser=argparse.ArgumentParser()
 parser.add_argument("-bam","--bamFile")
-parser.add_argument("-js","--JunSize",default=100)
+parser.add_argument("-buffer","--Buffer",default=100)
 parser.add_argument("-Prefix","--Prefix",default=None)
 parser.add_argument("-ref","--reference")
 args=parser.parse_args()
@@ -27,17 +27,39 @@ args=parser.parse_args()
 pd.set_option("display.max_columns",40)
 
 bamFile=args.bamFile
-pre=args.Prefix
+pName=args.Prefix
 ref=args.reference
+fl=args.Buffer
 
 from bamToPaf import bamConverter
 
-bamConverter().ConverAlignment(bamFile,pre)
+#bamConverter().ConverAlignment(bamFile,pre)
 
 #records=list(SeqIO.parse(ref,"fasta"))
 #d=dict(zip([rec.id for rec in records],[len(str(rec.seq)) for rec in records]))
 #
 #
+def filterTEreads(TE_paf):
+	f_te=pd.read_table(TE_paf)
+	bedA=f_te[["QName","QLen"]].drop_duplicates(["QName"],keep="first")
+	bedA["s"]=0
+	bedA[["QName","s","QLen"]].to_csv(pName+".bedA.bed",header=None,index=None,sep="\t")
+	f_te[["QName","QStart","QEnd"]].to_csv(pName+".bedB.bed",header=None,index=None,sep="\t")
+	bedtools="bedtools coverage -a %s -b %s > %s"%(pName+".bedA.bed",pName+".bedB.bed",pName+".bed")
+	os.system(bedtools)
+	
+	f_bed=pd.read_table(pName+".bed",header=None)
+	f_bed["cutoff"]=f_bed[2]-f_bed[2]*f_bed[6]
+	f_bed=f_bed.loc[f_bed["cutoff"]>=fl*2]
+	f_te=f_te.loc[f_te["QName"].isin(f_bed[0])]
+	f_te.to_csv(pName+"_TE.paf"+".filter.paf",index=None,sep="\t")
+	#os.remove(pName+".bedA.bed")
+	#os.remove(pName+".bedB.bed")
+	#os.remove(pName+".bed")
+	
+filterTEreads(pName+".paf")
+
+
 #def map_ratio(sub_f):
 #  r_len=int(list(sub_f["ReadLen"])[0])
 #  l=zip(sub_f["ReadStart"],sub_f["ReadEnd"])
