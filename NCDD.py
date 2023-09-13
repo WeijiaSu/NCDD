@@ -36,7 +36,7 @@ from bamToPaf import bamConverter
 #bamConverter().ConverAlignment(bamFile,pre)
 
 #
-def filterTEreads(mapped_paf):
+def filterFullreads(mapped_paf):
 	f=pd.read_table(mapped_paf)
 	s1=f.drop_duplicates(["QName"],keep="first").shape[0]
 
@@ -58,22 +58,18 @@ def filterTEreads(mapped_paf):
 	os.remove(pName+".bedB.bed")
 	os.remove(pName+".bed")
 	print("Total aligned reads %s; Fully aligned reads %s (%s)"%(s1,s2,round(s2/s1*100,2)))	
-filterTEreads(pName+".paf")
+#filterFullreads(pName+".paf")
 
 
-#  print("Total aligned reads %s; Fully aligned reads %s (%s)"%(s1,s2,round(s2/s1*100,2)))
-#
-#
-#
-#def FilterReads(File):
-#    f=pd.read_table(File,header=0,sep="\t")
-#    f["Refname"]=f["Refname"].apply(str)
-#    f["Reflen"]=f["Refname"].apply(lambda x: d[x])
-#    LinearAlignment=f.loc[(f["ReadStart"]<=100) & (f["ReadEnd"]>=f["ReadLen"]-100)]
-#    LinearAlignment.to_csv(pre+"_LiAg.tsv",index=None,sep="\t")
-#    candidateReads=f.loc[f["Readname"].apply(lambda x: x not in list(LinearAlignment["Readname"]))]
-#    candidateReads.to_csv(pre+".candi.tsv",index=None,sep="\t")
-#
+def FilterReads(File):
+    f=pd.read_table(File,header=0,sep="\t")
+    f["Refname"]=f["Refname"].apply(str)
+    f["Reflen"]=f["Refname"].apply(lambda x: d[x])
+    LinearAlignment=f.loc[(f["ReadStart"]<=100) & (f["ReadEnd"]>=f["ReadLen"]-100)]
+    LinearAlignment.to_csv(pre+"_LiAg.tsv",index=None,sep="\t")
+    candidateReads=f.loc[f["Readname"].apply(lambda x: x not in list(LinearAlignment["Readname"]))]
+    candidateReads.to_csv(pre+".candi.tsv",index=None,sep="\t")
+
 #
 #def Junction(list1,list2):
 #    n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
