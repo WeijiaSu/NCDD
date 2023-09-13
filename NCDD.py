@@ -61,15 +61,21 @@ def filterFullreads(mapped_paf):
 #filterFullreads(pName+".paf")
 
 
-def FilterReads(File):
+def LinearReads(File):
     f=pd.read_table(File,header=0,sep="\t")
-    f["Refname"]=f["Refname"].apply(str)
-    f["Reflen"]=f["Refname"].apply(lambda x: d[x])
-    LinearAlignment=f.loc[(f["ReadStart"]<=100) & (f["ReadEnd"]>=f["ReadLen"]-100)]
-    LinearAlignment.to_csv(pre+"_LiAg.tsv",index=None,sep="\t")
-    candidateReads=f.loc[f["Readname"].apply(lambda x: x not in list(LinearAlignment["Readname"]))]
-    candidateReads.to_csv(pre+".candi.tsv",index=None,sep="\t")
+    f["RName"]=f["RName"].apply(str)
+    LinearAlignment=f.loc[(f["QStart"]<=100) & (f["QEnd"]>=f["QLen"]-100)]
+    LinearAlignment=LinearAlignment.groupby("QName").filter(lambda x: len(x)==1)
+    LinearAlignment.to_csv(pName+"_LiAg.tsv",index=None,sep="\t")
+    candidateReads=f.loc[f["QName"].apply(lambda x: x not in list(LinearAlignment["QName"]))]
+    candidateReads.to_csv(pName+".candi.tsv",index=None,sep="\t")
+    s1=f.drop_duplicates(["QName"],keep="first").shape[0]
+    s2=LinearAlignment.drop_duplicates(["QName"],keep="first").shape[0]
+    s3=candidateReads.drop_duplicates(["QName"],keep="first").shape[0]
+    
+    print("Fully aligned reads %s: Linear Alignment %s (%s); Chimeric Alignment %s (%s)")%(s1,s2,round(s2/s1,2),s3.round(s3/s1,2))
 
+LinearReads(pName+".filter.full.paf")
 #
 #def Junction(list1,list2):
 #    n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
