@@ -73,8 +73,7 @@ def LinearReads(File):
     s2=LinearAlignment.drop_duplicates(["QName"],keep="first").shape[0]
     s3=candidateReads.drop_duplicates(["QName"],keep="first").shape[0]
     
-    print("Fully aligned reads %s: Linear Alignment %s (%s); Chimeric Alignment %s (%s)"%(s1,s2,round(s2/s1,2),s3,round(s3/s1,2))
-
+    print("Fully aligned reads %s: Linear Alignment %s (%s); Chimeric Alignment %s (%s)"%(s1,s2,round(s2/s1,2),s3,round(s3/s1,2)))
 #LinearReads(pName+".filter.full.paf")
 
 def ReadConfigure(list1,list2):
@@ -118,24 +117,23 @@ def CompleteCopy(sub,coordinate):
         return False
 	
 
+def CircleType(list1,list2):
 
-#def CircleType(list1,list2):
-#
-#    n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
-#    t1,t2,t3,t4=list1[2],list1[3],list2[2],list2[3]
-#    t_max=max(t1,t2,t3,t4)
-#    t_min=min(t1,t2,t3,t4)
-#    n_max=max(n1,n2,n3,n4)
-#    n_min=min(n1,n2,n3,n4)
-#    Overlap=n3-n2
-#    reflength=list1[-2]
-#    readlength=list1[-1]
-#    if isCircle(list1,list2) ==False:
-#        return "NC"
-#    else:
-#        return str(t_min)+"_"+str(t_max)+"_"+str(Overlap)
-#
-#
+    n1,n2,n3,n4=list1[0],list1[1],list2[0],list2[1]
+    t1,t2,t3,t4=list1[2],list1[3],list2[2],list2[3]
+    t_max=max(t1,t2,t3,t4)
+    t_min=min(t1,t2,t3,t4)
+    n_max=max(n1,n2,n3,n4)
+    n_min=min(n1,n2,n3,n4)
+    Overlap=n3-n2
+    reflength=list1[-2]
+    readlength=list1[-1]
+    if isCircle(list1,list2) ==False:
+        return "NC"
+    else:
+        return str(t_min)+"_"+str(t_max)+"_"+str(Overlap)
+
+
 def getCircle(f):
     d={}
     infors=list(set(list(f["infor"])))
@@ -178,12 +176,12 @@ def GetReads(canfile):
     fc.to_csv(pre+"_circles.txt",index=None,sep="\t")
     nc=f_circle.loc[f_circle["Circle"]=="NC"]
     circle=f_circle.drop_duplicates(["Readname"],keep="first").groupby(["Circle"],as_index=False).count()[["Circle","Readname"]].sort_values(["Circle"])
-
-#files=os.listdir("./")
-#if pre+"_rc90.tsv" not in files:
-#    print("Geting full read")
-#    getChimeric_reads(bamFile+"_AligTable.tsv")
-#if pre+".candi.tsv" not in files:
-#    print("Filtering reads")
-#    FilterReads(pre+"_rc90.tsv")
-#GetReads(pre+".candi.tsv")
+#
+files=os.listdir("./")
+if pName+".filter.full.paf" not in files:
+    print("Geting full read")
+    filterFullreads(pName+".paf")
+if pName+".candi.tsv" not in files:
+    print("Filtering reads")
+    LinearReads(pName+".filter.full.paf")
+GetReads(pName+".filter.full.paf")
