@@ -35,7 +35,7 @@ python NCDD.py -bam [BAMFILE] -js [JUNSIZE] -Prefix [PREFIX] -ref [REFERENCE]
 ## Parameters:
 
 -bam or --bamFile: Input BAM file. (required)
--js or --JunSize: Size of the junction. (default is 100)
+-buffer or --Buffer: Size of the buffer sequences. (default is 100)
 -Prefix or --Prefix: Prefix for output files. (default is None)
 -ref or --reference: Reference genome in FASTA format. (required)
 
