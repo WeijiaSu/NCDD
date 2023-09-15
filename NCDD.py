@@ -109,8 +109,8 @@ def isCircle(list1,list2):
             return False
 
 def CompleteCopy(sub,coordinate):
-    sub["s"]=sub["RefStart"].apply(lambda x: x>=int(coordinate[0])-100 and x<=int(coordinate[0])+100)
-    sub["e"]=sub["RefEnd"].apply(lambda x: x>=int(coordinate[1])-100 and x<=int(coordinate[1])+100)
+    sub["s"]=sub["RStart"].apply(lambda x: x>=int(coordinate[0])-100 and x<=int(coordinate[0])+100)
+    sub["e"]=sub["REnd"].apply(lambda x: x>=int(coordinate[1])-100 and x<=int(coordinate[1])+100)
     sub=sub.loc[(sub["s"]==True) & (sub["e"]==True)]
     if sub.shape[0]>0:
         return True
@@ -142,8 +142,8 @@ def getCircle(f):
     for infor in infors:
         d[infor]="NC"
         sub=f.loc[f["infor"]==infor]
-        sub=sub.sort_values(["Refname","ReadStart","ReadEnd"])
-        l=list(zip(sub["ReadStart"],sub["ReadEnd"],sub["RefStart"],sub["RefEnd"],sub["Strand"],sub["Reflen"],sub["ReadLen"]))
+        sub=sub.sort_values(["QName","QStart","QEnd"])
+        l=list(zip(sub["QStart"],sub["QEnd"],sub["RStart"],sub["REnd"],sub["Strand"],sub["RLen"],sub["QLen"]))
         i=0
         while i<len(l)-1:
             list1=l[i]
