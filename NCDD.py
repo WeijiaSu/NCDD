@@ -73,7 +73,7 @@ def LinearReads(File):
     s2=LinearAlignment.drop_duplicates(["QName"],keep="first").shape[0]
     s3=candidateReads.drop_duplicates(["QName"],keep="first").shape[0]
     
-    print("Fully aligned reads %s: Linear Alignment %s (%s); Chimeric Alignment %s (%s)")%(s1,s2,round(s2/s1,2),s3.round(s3/s1,2))
+    print("Fully aligned reads %s: Linear Alignment %s (%s); Chimeric Alignment %s (%s)"%(s1,s2,round(s2/s1,2),s3,round(s3/s1,2))
 
 #LinearReads(pName+".filter.full.paf")
 
