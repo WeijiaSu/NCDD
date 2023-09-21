@@ -33,7 +33,7 @@ fl=args.Buffer
 
 from bamToPaf import bamConverter
 
-#bamConverter().ConverAlignment(bamFile,pre)
+bamConverter().ConverAlignment(bamFile,pName)
 
 #
 def filterFullreads(mapped_paf):
@@ -175,7 +175,7 @@ def GetReads(canfile):
     fc=f_circle.loc[f_circle["Circle"]!="NC"]
     fc.to_csv(pName+"_circles.txt",index=None,sep="\t")
     nc=f_circle.loc[f_circle["Circle"]=="NC"]
-    circle=f_circle.drop_duplicates(["QName"],keep="first").groupby(["Circle"],as_index=False).count()[["Circle","Readname"]].sort_values(["Circle"])
+    circle=f_circle.drop_duplicates(["QName"],keep="first").groupby(["Circle"],as_index=False).count()[["Circle","QName"]].sort_values(["Circle"])
 #
 files=os.listdir("./")
 if pName+".filter.full.paf" not in files:
